@@ -22,12 +22,14 @@ pipeline {
                         -v ${DEPLOY_DIR}:${DEPLOY_DIR} \
                         -w ${DEPLOY_DIR} \
                         docker/compose:latest \
+                        -f ${DEPLOY_DIR}/docker-compose.yml \
                         -p hubkealex-v2 down --remove-orphans
                     docker run --rm \
                         -v /var/run/docker.sock:/var/run/docker.sock \
                         -v ${DEPLOY_DIR}:${DEPLOY_DIR} \
                         -w ${DEPLOY_DIR} \
                         docker/compose:latest \
+                        -f ${DEPLOY_DIR}/docker-compose.yml \
                         -p hubkealex-v2 up -d --build
                 """
             }
