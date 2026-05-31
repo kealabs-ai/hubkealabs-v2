@@ -11,13 +11,13 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'master', url: 'https://github.com/kealabs-ai/hubkealabs-v2.git'
             }
         }
 
         stage('Deploy') {
             steps {
-                sshagent(credentials: [SSH_CREDENTIALS]) {
+                sshagent(credentials: ['vps-ssh-key']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
                             mkdir -p ${DEPLOY_DIR}
@@ -41,7 +41,7 @@ pipeline {
 
         stage('Reload Nginx') {
             steps {
-                sshagent(credentials: [SSH_CREDENTIALS]) {
+                sshagent(credentials: ['vps-ssh-key']) {
                     sh """
                         ssh ${VPS_USER}@${VPS_HOST} 'nginx -t && systemctl reload nginx'
                     """
