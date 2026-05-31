@@ -17,10 +17,18 @@ pipeline {
                 sh """
                     mkdir -p ${DEPLOY_DIR}
                     cp -r . ${DEPLOY_DIR}/
-                    cd ${DEPLOY_DIR}
-                    docker-compose down --remove-orphans
-                    docker-compose build --no-cache
-                    docker-compose up -d
+                    docker run --rm \
+                        -v /var/run/docker.sock:/var/run/docker.sock \
+                        -v ${DEPLOY_DIR}:${DEPLOY_DIR} \
+                        -w ${DEPLOY_DIR} \
+                        docker/compose:latest \
+                        -p hubkealex-v2 down --remove-orphans
+                    docker run --rm \
+                        -v /var/run/docker.sock:/var/run/docker.sock \
+                        -v ${DEPLOY_DIR}:${DEPLOY_DIR} \
+                        -w ${DEPLOY_DIR} \
+                        docker/compose:latest \
+                        -p hubkealex-v2 up -d --build
                 """
             }
         }
