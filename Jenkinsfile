@@ -16,32 +16,28 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'vps-credentials', usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASS')]) {
-                    sh """
-                        sshpass -p '${SSH_PASS}' ssh -o StrictHostKeyChecking=no ${SSH_USER}@${VPS_HOST} 'mkdir -p ${DEPLOY_DIR}'
+                sh """
+                    ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'mkdir -p ${DEPLOY_DIR}'
 
-                        sshpass -p '${SSH_PASS}' rsync -az --delete \
-                            --exclude='.git' \
-                            --exclude='.qodo' \
-                            -e 'ssh -o StrictHostKeyChecking=no' \
-                            ./ ${SSH_USER}@${VPS_HOST}:${DEPLOY_DIR}/
+                    rsync -az --delete \
+                        --exclude='.git' \
+                        --exclude='.qodo' \
+                        -e 'ssh -o StrictHostKeyChecking=no' \
+                        ./ ${VPS_USER}@${VPS_HOST}:${DEPLOY_DIR}/
 
-                        sshpass -p '${SSH_PASS}' ssh ${SSH_USER}@${VPS_HOST} '
-                            cd ${DEPLOY_DIR} &&
-                            docker compose down --remove-orphans &&
-                            docker compose build --no-cache &&
-                            docker compose up -d
-                        '
-                    """
-                }
+                    ssh ${VPS_USER}@${VPS_HOST} '
+                        cd ${DEPLOY_DIR} &&
+                        docker compose down --remove-orphans &&
+                        docker compose build --no-cache &&
+                        docker compose up -d
+                    '
+                """
             }
         }
 
         stage('Reload Nginx') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'vps-credentials', usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASS')]) {
-                    sh "sshpass -p '${SSH_PASS}' ssh ${SSH_USER}@${VPS_HOST} 'nginx -t && systemctl reload nginx'"
-                }
+                sh "ssh ${VPS_USER}@${VPS_HOST} 'nginx -t && systemctl reload nginx'"
             }
         }
 
