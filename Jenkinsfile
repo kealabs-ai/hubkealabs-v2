@@ -15,14 +15,11 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh """
-                    rsync -az --delete \
-                        --exclude='.git' \
-                        --exclude='.qodo' \
-                        ./ ${DEPLOY_DIR}/
-
-                    cd ${DEPLOY_DIR} &&
-                    docker compose down --remove-orphans &&
-                    docker compose build --no-cache &&
+                    mkdir -p ${DEPLOY_DIR}
+                    cp -r . ${DEPLOY_DIR}/
+                    cd ${DEPLOY_DIR}
+                    docker compose down --remove-orphans
+                    docker compose build --no-cache
                     docker compose up -d
                 """
             }
@@ -30,7 +27,7 @@ pipeline {
 
         stage('Reload Nginx') {
             steps {
-                sh 'sudo nginx -t && sudo systemctl reload nginx'
+                sh 'docker exec nginx nginx -t && docker exec nginx nginx -s reload'
             }
         }
 
