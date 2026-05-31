@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  hubkealex-v2:
+    build: .
+    container_name: hubkealex-v2
+    restart: always
+    ports:
+      - "8002:8000"
+    networks:
+      - kealabs-net
+
+networks:
+  kealabs-net:
+    external: true
