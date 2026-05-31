@@ -2,10 +2,9 @@ pipeline {
     agent any
 
     environment {
-        VPS_HOST        = 'srv1023256.hstgr.cloud'
-        VPS_USER        = 'root'
-        DEPLOY_DIR      = '/opt/hubkealex-v2'
-        SSH_CREDENTIALS = 'vps-ssh-key'
+        VPS_HOST   = 'srv1023256.hstgr.cloud'
+        VPS_USER   = 'root'
+        DEPLOY_DIR = '/opt/hubkealex-v2'
     }
 
     stages {
@@ -17,18 +16,17 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sshagent(credentials: ['vps-ssh-key']) {
+                withCredentials([usernamePassword(credentialsId: 'vps-credentials', usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASS')]) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
-                            mkdir -p ${DEPLOY_DIR}
-                        '
+                        sshpass -p '${SSH_PASS}' ssh -o StrictHostKeyChecking=no ${SSH_USER}@${VPS_HOST} 'mkdir -p ${DEPLOY_DIR}'
 
-                        rsync -az --delete \
+                        sshpass -p '${SSH_PASS}' rsync -az --delete \
                             --exclude='.git' \
                             --exclude='.qodo' \
-                            ./ ${VPS_USER}@${VPS_HOST}:${DEPLOY_DIR}/
+                            -e 'ssh -o StrictHostKeyChecking=no' \
+                            ./ ${SSH_USER}@${VPS_HOST}:${DEPLOY_DIR}/
 
-                        ssh ${VPS_USER}@${VPS_HOST} '
+                        sshpass -p '${SSH_PASS}' ssh ${SSH_USER}@${VPS_HOST} '
                             cd ${DEPLOY_DIR} &&
                             docker compose down --remove-orphans &&
                             docker compose build --no-cache &&
@@ -41,17 +39,15 @@ pipeline {
 
         stage('Reload Nginx') {
             steps {
-                sshagent(credentials: ['vps-ssh-key']) {
-                    sh """
-                        ssh ${VPS_USER}@${VPS_HOST} 'nginx -t && systemctl reload nginx'
-                    """
+                withCredentials([usernamePassword(credentialsId: 'vps-credentials', usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASS')]) {
+                    sh "sshpass -p '${SSH_PASS}' ssh ${SSH_USER}@${VPS_HOST} 'nginx -t && systemctl reload nginx'"
                 }
             }
         }
 
         stage('Health Check') {
             steps {
-                sh "sleep 5"
+                sh 'sleep 5'
                 sh "curl -f https://${VPS_HOST}/v2/lex/health || exit 1"
             }
         }
