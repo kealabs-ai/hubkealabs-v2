@@ -18,9 +18,9 @@ pipeline {
                     mkdir -p ${DEPLOY_DIR}
                     cp -r . ${DEPLOY_DIR}/
                     cd ${DEPLOY_DIR}
-                    docker compose down --remove-orphans
-                    docker compose build --no-cache
-                    docker compose up -d
+                    docker-compose down --remove-orphans
+                    docker-compose build --no-cache
+                    docker-compose up -d
                 """
             }
         }
