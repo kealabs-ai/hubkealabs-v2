@@ -15,8 +15,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh """
-                    mkdir -p ${DEPLOY_DIR}
-                    cp -r . ${DEPLOY_DIR}/
+                    rm -rf ${DEPLOY_DIR} && mkdir -p ${DEPLOY_DIR}
+                    find . -maxdepth 1 ! -name '.git' ! -name '.' -exec cp -r {} ${DEPLOY_DIR}/ \\;
                     docker run --rm \
                         -v /var/run/docker.sock:/var/run/docker.sock \
                         -v ${DEPLOY_DIR}:${DEPLOY_DIR} \
