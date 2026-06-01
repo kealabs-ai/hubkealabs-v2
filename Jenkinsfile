@@ -14,24 +14,29 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sh """
-                    rm -rf ${DEPLOY_DIR} && mkdir -p ${DEPLOY_DIR}
-                    find . -maxdepth 1 ! -name '.git' ! -name '.' -exec cp -r {} ${DEPLOY_DIR}/ \\;
+                sh '''
+                    mkdir -p $DEPLOY_DIR
+
+                    find . -maxdepth 1 ! -name ".git" ! -name "." -exec cp -r {} $DEPLOY_DIR/ \\;
+
+                    if [ -f "$DEPLOY_DIR/docker-compose.yml" ]; then
+                        docker run --rm \
+                            -v /var/run/docker.sock:/var/run/docker.sock \
+                            -v $DEPLOY_DIR:$DEPLOY_DIR \
+                            -w $DEPLOY_DIR \
+                            docker/compose:latest \
+                            -f $DEPLOY_DIR/docker-compose.yml \
+                            -p hubkealex-v2 down --remove-orphans
+                    fi
+
                     docker run --rm \
                         -v /var/run/docker.sock:/var/run/docker.sock \
-                        -v ${DEPLOY_DIR}:${DEPLOY_DIR} \
-                        -w ${DEPLOY_DIR} \
+                        -v $DEPLOY_DIR:$DEPLOY_DIR \
+                        -w $DEPLOY_DIR \
                         docker/compose:latest \
-                        -f ${DEPLOY_DIR}/docker-compose.yml \
-                        -p hubkealex-v2 down --remove-orphans
-                    docker run --rm \
-                        -v /var/run/docker.sock:/var/run/docker.sock \
-                        -v ${DEPLOY_DIR}:${DEPLOY_DIR} \
-                        -w ${DEPLOY_DIR} \
-                        docker/compose:latest \
-                        -f ${DEPLOY_DIR}/docker-compose.yml \
+                        -f $DEPLOY_DIR/docker-compose.yml \
                         -p hubkealex-v2 up -d --build
-                """
+                '''
             }
         }
 
