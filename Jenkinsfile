@@ -7,7 +7,6 @@ pipeline {
         GIT_REPO       = 'https://github.com/kealabs-ai/hubkealabs-v2.git'
         GIT_BRANCH     = 'master'
         DOCKER         = '/var/jenkins_home/docker'
-        DOCKER_COMPOSE = '/var/jenkins_home/docker-compose'
     }
 
     stages {
@@ -59,10 +58,10 @@ pipeline {
                     cd $DEPLOY_PATH
 
                     echo "▶ Derrubando stack anterior..."
-                    $DOCKER_COMPOSE -f docker-compose.yml -p $PROJETO down --remove-orphans 2>/dev/null || true
+                    $DOCKER compose -f docker-compose.yml -p $PROJETO down --remove-orphans 2>/dev/null || true
 
                     echo "▶ Build e subida dos containers..."
-                    $DOCKER_COMPOSE -f docker-compose.yml -p $PROJETO up -d --build
+                    $DOCKER compose -f docker-compose.yml -p $PROJETO up -d --build
 
                     echo "✅ Deploy concluído"
                 '''
@@ -74,6 +73,7 @@ pipeline {
             steps {
                 sh '''
                     $DOCKER exec nginx nginx -t && $DOCKER exec nginx nginx -s reload
+
                     echo "  ✔ Nginx recarregado"
                 '''
             }
@@ -114,6 +114,7 @@ pipeline {
                 sh '''
                     echo "▶ Estado final dos containers:"
                     /var/jenkins_home/docker ps --filter "name=hubkealex-v2" || true
+
                 '''
             }
         }
