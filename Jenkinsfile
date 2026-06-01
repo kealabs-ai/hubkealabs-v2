@@ -57,6 +57,10 @@ pipeline {
                     set -e
                     cd $DEPLOY_PATH
 
+                    echo "▶ Garantindo rede kealabs-net..."
+                    $DOCKER network inspect kealabs-net >/dev/null 2>&1 || \
+                        $DOCKER network create kealabs-net
+
                     echo "▶ Derrubando stack anterior..."
                     $DOCKER compose -f docker-compose.yml -p $PROJETO down --remove-orphans 2>/dev/null || true
 

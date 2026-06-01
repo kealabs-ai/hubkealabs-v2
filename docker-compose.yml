@@ -13,3 +13,4 @@ services:
 networks:
   kealabs-net:
     external: true
+    name: kealabs-net
