@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        DEPLOY_DIR = '/opt/hubkealex-v2'
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -15,39 +11,20 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    mkdir -p $DEPLOY_DIR
-
-                    for item in $(ls -A | grep -v "^\\.git$"); do
-                        cp -r "$item" "$DEPLOY_DIR/"
-                    done
-
-                    if [ ! -f "$DEPLOY_DIR/docker-compose.yml" ]; then
-                        echo "ERRO: docker-compose.yml nao encontrado em $DEPLOY_DIR"
-                        exit 1
-                    fi
-
-                    if docker run --rm \
+                    docker run --rm \
                         -v /var/run/docker.sock:/var/run/docker.sock \
-                        -v $DEPLOY_DIR:$DEPLOY_DIR \
-                        -w $DEPLOY_DIR \
+                        -v $WORKSPACE:$WORKSPACE \
+                        -w $WORKSPACE \
                         docker/compose:latest \
-                        -f $DEPLOY_DIR/docker-compose.yml \
-                        -p hubkealex-v2 ps -q 2>/dev/null | grep -q .; then
-                        docker run --rm \
-                            -v /var/run/docker.sock:/var/run/docker.sock \
-                            -v $DEPLOY_DIR:$DEPLOY_DIR \
-                            -w $DEPLOY_DIR \
-                            docker/compose:latest \
-                            -f $DEPLOY_DIR/docker-compose.yml \
-                            -p hubkealex-v2 down --remove-orphans
-                    fi
+                        -f $WORKSPACE/docker-compose.yml \
+                        -p hubkealex-v2 down --remove-orphans 2>/dev/null || true
 
                     docker run --rm \
                         -v /var/run/docker.sock:/var/run/docker.sock \
-                        -v $DEPLOY_DIR:$DEPLOY_DIR \
-                        -w $DEPLOY_DIR \
+                        -v $WORKSPACE:$WORKSPACE \
+                        -w $WORKSPACE \
                         docker/compose:latest \
-                        -f $DEPLOY_DIR/docker-compose.yml \
+                        -f $WORKSPACE/docker-compose.yml \
                         -p hubkealex-v2 up -d --build
                 '''
             }
