@@ -12,14 +12,7 @@ pipeline {
 
     stages {
 
-        // ── 1. CHECKOUT ───────────────────────────────────────────────────
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        // ── 2. PREPARAR AMBIENTE ──────────────────────────────────────────
+        // ── 1. PREPARAR AMBIENTE ──────────────────────────────────────────
         stage('Prepare') {
             steps {
                 sh '''
