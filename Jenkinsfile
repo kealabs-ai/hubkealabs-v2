@@ -17,9 +17,22 @@ pipeline {
                 sh '''
                     mkdir -p $DEPLOY_DIR
 
-                    find . -maxdepth 1 ! -name ".git" ! -name "." -exec cp -r {} $DEPLOY_DIR/ \\;
+                    for item in $(ls -A | grep -v "^\\.git$"); do
+                        cp -r "$item" "$DEPLOY_DIR/"
+                    done
 
-                    if [ -f "$DEPLOY_DIR/docker-compose.yml" ]; then
+                    if [ ! -f "$DEPLOY_DIR/docker-compose.yml" ]; then
+                        echo "ERRO: docker-compose.yml nao encontrado em $DEPLOY_DIR"
+                        exit 1
+                    fi
+
+                    if docker run --rm \
+                        -v /var/run/docker.sock:/var/run/docker.sock \
+                        -v $DEPLOY_DIR:$DEPLOY_DIR \
+                        -w $DEPLOY_DIR \
+                        docker/compose:latest \
+                        -f $DEPLOY_DIR/docker-compose.yml \
+                        -p hubkealex-v2 ps -q 2>/dev/null | grep -q .; then
                         docker run --rm \
                             -v /var/run/docker.sock:/var/run/docker.sock \
                             -v $DEPLOY_DIR:$DEPLOY_DIR \
