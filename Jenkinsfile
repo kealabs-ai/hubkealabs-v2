@@ -72,18 +72,7 @@ pipeline {
             }
         }
 
-        // ── 5. RELOAD NGINX ───────────────────────────────────────────────
-        stage('Reload Nginx') {
-            steps {
-                sh '''
-                    nsenter -t 1 -m -u -i -n -p -- nginx -t && \
-                    nsenter -t 1 -m -u -i -n -p -- systemctl reload nginx
-                    echo "  ✔ Nginx recarregado"
-                '''
-            }
-        }
-
-        // ── 6. HEALTH CHECK ───────────────────────────────────────────────
+        // ── 5. HEALTH CHECK ───────────────────────────────────────────────
         stage('Health Check') {
             steps {
                 sh '''
