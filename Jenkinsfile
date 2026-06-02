@@ -76,14 +76,9 @@ pipeline {
         stage('Reload Nginx') {
             steps {
                 sh '''
-                    NGINX_CONTAINER=$($DOCKER ps --filter "name=nginx" --format "{{.Names}}" | head -1)
-                    if [ -n "$NGINX_CONTAINER" ]; then
-                        $DOCKER exec $NGINX_CONTAINER nginx -t && \
-                        $DOCKER exec $NGINX_CONTAINER nginx -s reload
-                        echo "  ✔ Nginx recarregado via container: $NGINX_CONTAINER"
-                    else
-                        echo "  ⚠ Container nginx não encontrado, pulando reload"
-                    fi
+                    nsenter -t 1 -m -u -i -n -p -- nginx -t && \
+                    nsenter -t 1 -m -u -i -n -p -- systemctl reload nginx
+                    echo "  ✔ Nginx recarregado"
                 '''
             }
         }
