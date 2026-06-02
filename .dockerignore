@@ -2,5 +2,4 @@
 .qodo
 __pycache__
 *.pyc
-nginx/
 Jenkinsfile

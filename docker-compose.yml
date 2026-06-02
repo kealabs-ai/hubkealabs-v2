@@ -1,16 +1,29 @@
-version: "3.9"
-
 services:
+
+  # ── HUBKEALEX V2 ──────────────────────────────────────────────────────────
   hubkealex-v2:
     build: .
     container_name: hubkealex-v2
-    restart: always
-    ports:
-      - "8002:8000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.hubkealex-v2.rule=(Host(`srv1023256.hstgr.cloud`) || Host(`kealabs.cloud`) || Host(`www.kealabs.cloud`)) && PathPrefix(`/v2/lex`)"
+      - "traefik.http.routers.hubkealex-v2.entrypoints=https"
+      - "traefik.http.routers.hubkealex-v2.tls=true"
+      - "traefik.http.middlewares.hubkealex-v2-cors.headers.accesscontrolalloworiginlist=https://kealabs.cloud,https://www.kealabs.cloud,https://srv1023256.hstgr.cloud,https://kealabs.com.br,https://www.kealabs.com.br,http://localhost:3000"
+      - "traefik.http.middlewares.hubkealex-v2-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
+      - "traefik.http.middlewares.hubkealex-v2-cors.headers.accesscontrolallowheaders=Content-Type,Authorization,Accept"
+      - "traefik.http.middlewares.hubkealex-v2-cors.headers.accesscontrolallowcredentials=true"
+      - "traefik.http.middlewares.hubkealex-v2-cors.headers.accesscontrolmaxage=86400"
+      - "traefik.http.middlewares.hubkealex-v2-cors.headers.addvaryheader=true"
+      - "traefik.http.routers.hubkealex-v2.middlewares=hubkealex-v2-cors"
+      - "traefik.http.services.hubkealex-v2.loadbalancer.server.port=8000"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     networks:
-      - kealabs-net
+      - easypanel
 
 networks:
-  kealabs-net:
+  easypanel:
     external: true
-    name: kealabs-net
